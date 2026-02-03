@@ -19,7 +19,9 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
       parserOptions: {
-        project: './tsconfig.json',
+        // Point directly to the app/node tsconfig files so the parser
+        // can find the files included for type-aware rules on Windows.
+        project: ['./tsconfig.app.json', './tsconfig.node.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
