@@ -1,68 +1,53 @@
-# Soc Ops - AI Agent Instructions
+**Overview**
+- Purpose: Assist AI coding agents to quickly understand and contribute to this React + Vite TypeScript app.
+- App type: Single-page React app using Vite, TypeScript, Tailwind.
 
-> **Social Bingo Game**: 5x5 grid matching social prompts for in-person mixers
+**Architecture (big picture)**
+- **UI layers:** Core UI components live in [src/components](src/components/) — key screens: [src/components/StartScreen.tsx](src/components/StartScreen.tsx) and [src/components/GameScreen.tsx](src/components/GameScreen.tsx).
+- **Game logic:** State and game flow are in [src/hooks/useBingoGame.ts](src/hooks/useBingoGame.ts). Pure game algorithms are in [src/utils/bingoLogic.ts](src/utils/bingoLogic.ts) (well-covered by tests in [src/utils/bingoLogic.test.ts](src/utils/bingoLogic.test.ts)).
+- **Data:** Static question data is in [src/data/questions.ts](src/data/questions.ts).
+- **Assets/config:** Vite config at [vite.config.ts](vite.config.ts), TypeScript settings at [tsconfig.json](tsconfig.json), ESLint config at [eslint.config.js](eslint.config.js).
 
-## 🔒 Mandatory Development Checklist
+**Developer workflows (commands)**
+- Install: `npm install`
+- Dev server: `npm run dev` (opens at http://localhost:5173/)
+- Build: `npm run build` (runs `tsc -b` then `vite build`)
+- Tests: `npm run test` (Vitest — unit tests located under `src/utils`)
+- Lint: `npm run lint` (ESLint; note: currently errors due to `parserOptions.project` / tsconfig inclusion)
 
-Before committing or deploying, ensure ALL items are checked:
+**Project-specific conventions & patterns**
+- Keep domain logic in `src/utils` and `src/hooks` — UI components should be thin and read-only where possible.
+  - Example: `generateBoard`, `toggleSquare`, `checkBingo` live in [src/utils/bingoLogic.ts](src/utils/bingoLogic.ts) and are accessed by the hook in [src/hooks/useBingoGame.ts](src/hooks/useBingoGame.ts).
+- Tests target pure logic functions (see [src/utils/bingoLogic.test.ts](src/utils/bingoLogic.test.ts)). Prefer adding unit tests for new algorithmic code rather than UI snapshots.
+- Tailwind v4 is used; follow the project's Tailwind setup in `index.css` and `package.json` dependencies.
 
-- [ ] **Lint**: `npm run lint` passes with no errors
-- [ ] **Build**: `npm run build` completes successfully  
-- [ ] **Test**: `npm run test` shows all tests passing
+**Integration points & external deps**
+- Runtime: `react` / `react-dom` + Vite with `@vitejs/plugin-react`.
+- Styling: `tailwindcss` + `@tailwindcss/vite` plugin.
+- Testing: `vitest` + `@testing-library/react`.
+- Linting: ESLint configuration expects TypeScript project references; see [eslint.config.js](eslint.config.js) and [tsconfig.app.json](tsconfig.app.json) for how TypeScript projects are laid out.
 
-## Architecture Overview
+**Common issues & quick fixes**
+- ESLint parsing errors about `parserOptions.project`: this occurs when ESLint cannot locate tsconfig paths for the files. Quick options:
+  - Adjust `eslint.config.js` to remove or scope `parserOptions.project`, or
+  - Ensure `tsconfig.json` and `tsconfig.app.json` include the `src` files (project references).
+- If adding new TypeScript files, ensure they're included by the TypeScript project referenced by ESLint.
 
-**State Pattern**: `useBingoGame` hook controls all game state + localStorage persistence  
-**Pure Logic**: `src/utils/bingoLogic.ts` - stateless functions for game mechanics  
-**Types**: `src/types/index.ts` - `BingoSquareData`, `BingoLine`, `GameState`
+**Where to look for examples**
+- Game hook usage in [src/components/GameScreen.tsx](src/components/GameScreen.tsx).
+- Board rendering in [src/components/BingoBoard.tsx](src/components/BingoBoard.tsx) and square interaction in [src/components/BingoSquare.tsx](src/components/BingoSquare.tsx).
+- Test patterns in [src/utils/bingoLogic.test.ts](src/utils/bingoLogic.test.ts).
 
-**Component Flow**: `App.tsx` → `StartScreen` | `GameScreen` → `BingoBoard` → `BingoSquare` (×25)
+**Agent behavior rules (do this first)**
+- Prefer small, focused changes: update the hook or utils for logic changes, and the corresponding component only for view changes.
+- Run tests locally before opening PRs: `npm run test`.
+- When modifying TypeScript configuration or ESLint, run `npm run lint` to verify no new parser/project errors are introduced.
+- Leave UI/UX tweaks minimal unless requested — this repo focuses on the bingo logic.
 
-## Critical Patterns
+**PR checklist for agents**
+- Tests updated/added for logic changes.
+- Lint passes or known ESLint issues documented in PR description.
+- Dev server runs and primary flows (start → generate board → mark squares) work.
 
-### Game Logic
-- **Pure Functions**: All logic in `bingoLogic.ts` - no React state
-- **Immutable Updates**: `toggleSquare()` returns new arrays, never mutates
-- **Center Free Space**: Always index 12 in 25-grid, auto-marked on generation
-- **Win Detection**: `checkBingo()` returns `BingoLine` with winning square IDs
-
-### State Management
-```typescript
-// localStorage pattern with version validation
-const STORAGE_KEY = 'bingo-game-state';
-const STORAGE_VERSION = 1;
-```
-
-### Component Props
-```typescript
-// Always use specific callback signatures
-interface GameScreenProps {
-  board: BingoSquareData[];
-  onSquareClick: (squareId: number) => void;
-}
-```
-
-## Development Workflow
-
-### Test-First Approach
-- `src/utils/bingoLogic.test.ts` - 21 tests covering all game mechanics
-- New game logic requires tests BEFORE implementation
-- Use `npm run test -- --watch` for TDD workflow
-
-### Component Development
-1. Define TypeScript interface for props
-2. Functional components only
-3. Event handlers: `handle` prefix (`handleSquareClick`)
-4. Direct Tailwind classes (no CSS modules)
-
-## Key Implementation Details
-
-**Mobile-First**: `user-scalable=no`, touch-friendly `py-4 px-8` buttons  
-**Data Flow**: `questions.ts` → `generateBoard()` → user clicks → `toggleSquare()` → `checkBingo()`  
-**Deployment**: Auto GitHub Pages on `main` push, Vite handles base path
-
-## Key Files
-- **Questions**: `src/data/questions.ts` (24 social prompts)
-- **Game State**: `src/hooks/useBingoGame.ts` (add features here)
-- **Logic**: `src/utils/bingoLogic.ts` (win conditions, board generation)
-- **Types**: `src/types/index.ts` (TypeScript definitions)
+---
+Please review this guidance and tell me if you want more detail on any section (examples, deeper architecture notes, or automated fixes for the ESLint `parserOptions.project` issue).
